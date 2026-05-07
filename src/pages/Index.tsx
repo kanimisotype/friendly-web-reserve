@@ -1,163 +1,153 @@
+import { useMemo, useState } from "react";
+import { Sparkles, RefreshCw, Copy, BookOpen } from "lucide-react";
 
-import { Calendar } from "lucide-react";
-import { useState } from "react";
-import { motion } from "framer-motion";
+type ArticleSection = {
+  heading: string;
+  body: string;
+};
+
+const buildArticle = (theme: string): { title: string; lead: string; sections: ArticleSection[]; conclusion: string; tags: string[] } => {
+  const cleanedTheme = theme.trim();
+  const title = `【保存版】${cleanedTheme}をわかりやすく解説`;
+
+  return {
+    title,
+    lead: `${cleanedTheme}について、「何から始めればよいかわからない」という方に向けて、要点をシンプルに整理しました。この記事では基本の考え方から実践の流れまで、今日から使える形で紹介します。`,
+    sections: [
+      {
+        heading: `${cleanedTheme}とは？`,
+        body: `${cleanedTheme}は、目的を明確にしてから小さく試すことで成果が出やすくなるテーマです。まずは全体像をつかみ、必要な要素を分解して考えるのがポイントです。`
+      },
+      {
+        heading: `失敗しないための3つのポイント`,
+        body: `1つ目は「目的を1文で言語化する」こと。2つ目は「最初のハードルを低くする」こと。3つ目は「振り返りを仕組みにする」ことです。この3点を押さえるだけで、${cleanedTheme}の継続率は大きく上がります。`
+      },
+      {
+        heading: `今日からできる実践ステップ`,
+        body: `ステップ1: 取り組む理由をメモする。ステップ2: 15分でできる最小アクションを決める。ステップ3: 実行後に「よかった点・改善点」を記録する。この流れを1週間続けると、${cleanedTheme}への理解が一気に深まります。`
+      }
+    ],
+    conclusion: `${cleanedTheme}は、完璧を目指すよりも「小さく始めて改善する」ことが成功の近道です。まずは1つだけアクションを決めて、今日から実践してみてください。`,
+    tags: [cleanedTheme, "学び", "初心者向け", "実践"]
+  };
+};
 
 const Index = () => {
-  const [step, setStep] = useState(1);
+  const [theme, setTheme] = useState("");
+  const [submittedTheme, setSubmittedTheme] = useState("");
 
-  const fadeInUp = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
+  const article = useMemo(() => {
+    if (!submittedTheme) return null;
+    return buildArticle(submittedTheme);
+  }, [submittedTheme]);
+
+  const handleGenerate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!theme.trim()) return;
+    setSubmittedTheme(theme.trim());
+  };
+
+  const handleCopy = async () => {
+    if (!article) return;
+
+    const articleText = [
+      article.title,
+      "",
+      article.lead,
+      "",
+      ...article.sections.flatMap((section) => [section.heading, section.body, ""]),
+      "まとめ",
+      article.conclusion,
+      "",
+      `#${article.tags.join(" #")}`
+    ].join("\n");
+
+    await navigator.clipboard.writeText(articleText);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-12">
-        <motion.div 
-          className="max-w-2xl mx-auto text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <span className="inline-block px-4 py-1.5 bg-accent rounded-full text-sm font-medium mb-4">
-            簡単予約システム
+    <main className="min-h-screen bg-slate-50 py-10 px-4">
+      <section className="max-w-4xl mx-auto space-y-6">
+        <header className="text-center space-y-3">
+          <span className="inline-flex items-center gap-2 rounded-full bg-violet-100 text-violet-700 px-4 py-1 text-sm font-medium">
+            <Sparkles className="w-4 h-4" />
+            note記事自動生成アプリ
           </span>
-          <h1 className="text-4xl font-bold mb-6 text-secondary">
-            オンライン予約
-          </h1>
-          <p className="text-muted-foreground mb-8">
-            スムーズな予約体験をお届けします。数クリックで完了します。
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">テーマ入力で記事を自動生成</h1>
+          <p className="text-slate-600">
+            テーマを入力すると、そのテーマに沿ったnote記事のドラフトを即座に作成します。
           </p>
-        </motion.div>
+        </header>
 
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-8">
-          <div className="flex items-center justify-center mb-8">
-            {[1, 2, 3].map((num) => (
-              <div key={num} className="flex items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    step >= num
-                      ? "bg-secondary text-white"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {num}
-                </div>
-                {num < 3 && (
-                  <div
-                    className={`w-12 h-0.5 mx-2 ${
-                      step > num ? "bg-secondary" : "bg-muted"
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <motion.div
-            className="space-y-6"
-            initial="initial"
-            animate="animate"
-            variants={fadeInUp}
-          >
-            {step === 1 && (
-              <div className="text-center">
-                <Calendar className="w-12 h-12 mx-auto mb-4 text-secondary" />
-                <h2 className="text-2xl font-semibold mb-4">日付を選択</h2>
-                <p className="text-muted-foreground mb-6">
-                  ご希望の日付をお選びください
-                </p>
-                <button
-                  onClick={() => setStep(2)}
-                  className="bg-secondary text-white px-8 py-3 rounded-lg hover:bg-secondary/90 transition-colors"
-                >
-                  次へ進む
-                </button>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold mb-4">時間を選択</h2>
-                <p className="text-muted-foreground mb-6">
-                  ご希望の時間をお選びください
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-lg mx-auto mb-6">
-                  {["10:00", "11:00", "13:00", "14:00", "15:00", "16:00"].map((time) => (
-                    <button
-                      key={time}
-                      className="px-4 py-3 border rounded-lg hover:border-secondary hover:bg-muted/50 transition-colors"
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex justify-center gap-4">
-                  <button
-                    onClick={() => setStep(1)}
-                    className="px-6 py-2 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    戻る
-                  </button>
-                  <button
-                    onClick={() => setStep(3)}
-                    className="bg-secondary text-white px-6 py-2 rounded-lg hover:bg-secondary/90 transition-colors"
-                  >
-                    次へ
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 3 && (
-              <div className="max-w-md mx-auto">
-                <h2 className="text-2xl font-semibold mb-4 text-center">予約情報入力</h2>
-                <form className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">お名前</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">メールアドレス</label>
-                    <input
-                      type="email"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">電話番号</label>
-                    <input
-                      type="tel"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/20"
-                    />
-                  </div>
-                  <div className="flex justify-center gap-4 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => setStep(2)}
-                      className="px-6 py-2 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      戻る
-                    </button>
-                    <button
-                      type="submit"
-                      className="bg-secondary text-white px-6 py-2 rounded-lg hover:bg-secondary/90 transition-colors"
-                    >
-                      予約を確定
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-          </motion.div>
+        <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+          <form onSubmit={handleGenerate} className="space-y-4">
+            <label htmlFor="theme" className="block text-sm font-medium text-slate-700">
+              記事テーマ
+            </label>
+            <input
+              id="theme"
+              type="text"
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+              placeholder="例：副業ブログの始め方"
+              className="w-full rounded-lg border border-slate-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-300"
+            />
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="submit"
+                className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-5 py-2.5 text-white hover:bg-violet-700 transition-colors"
+              >
+                <BookOpen className="w-4 h-4" />
+                記事を生成
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTheme("");
+                  setSubmittedTheme("");
+                }}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-5 py-2.5 text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                リセット
+              </button>
+            </div>
+          </form>
         </div>
-      </div>
-    </div>
+
+        {article && (
+          <article className="bg-white rounded-2xl shadow-sm p-6 md:p-8 space-y-6">
+            <div className="flex items-start justify-between gap-4">
+              <h2 className="text-2xl font-bold text-slate-900">{article.title}</h2>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="shrink-0 inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                <Copy className="w-4 h-4" />
+                コピー
+              </button>
+            </div>
+
+            <p className="text-slate-700 leading-7">{article.lead}</p>
+
+            {article.sections.map((section) => (
+              <section key={section.heading} className="space-y-2">
+                <h3 className="text-xl font-semibold text-slate-800">{section.heading}</h3>
+                <p className="text-slate-700 leading-7">{section.body}</p>
+              </section>
+            ))}
+
+            <section className="space-y-2 border-t pt-4">
+              <h3 className="text-xl font-semibold text-slate-800">まとめ</h3>
+              <p className="text-slate-700 leading-7">{article.conclusion}</p>
+            </section>
+
+            <p className="text-sm text-slate-500">#{article.tags.join(" #")}</p>
+          </article>
+        )}
+      </section>
+    </main>
   );
 };
 
